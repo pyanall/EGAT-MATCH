@@ -448,6 +448,10 @@ body{font-weight:500}
 .stat b,.rp-kv b,.big3 b,.dn-l b,.dnbox b,.ins-r b{font-weight:800!important}
 .stat small,.hint,.sub,.steptxt,small,.cnote,.crit td{font-weight:500}
 .crit td:first-child{font-weight:500}
+.screen.done5 .steptxt,.screen.done5 .prog{display:none}
+.screen.done5 .title{margin-top:10px}
+.top h1{white-space:nowrap;font-size:clamp(13.5px,4vw,16px);display:flex;align-items:center;gap:7px;max-width:calc(100% - 88px);overflow:hidden;text-overflow:ellipsis}
+.top h1 .lg{flex-shrink:0}
 </style>
 </head>
 <body>
@@ -785,7 +789,7 @@ const painLabel=k=>(PAIN_MAIN.concat(DET).find(p=>p[0]===k)||[,,k])[2];
 const STEPS={0:['',''],1:['เลือกกลุ่มธุรกิจ','แบ่งตาม 8 กลุ่มอุตสาหกรรมของ SET'],2:['เลือกประเภทธุรกิจ',''],3:['ธุรกิจของคุณ\nเจอปัญหาอะไร?','เลือกปัญหาหลัก แล้วเล่ารายละเอียดเพิ่มได้'],4:['ข้อมูลการใช้ไฟฟ้า','ใช้คัดกรองและคำนวณผลประหยัด'],5:['ผลการคัดกรอง\nและ Matching',''],6:['ข้อมูลลูกค้า','กรอกเมื่อพอใจผลการ Matching'],7:['Report','สรุปข้อมูลสำคัญและผลการ Matching']};
 function go(n){dir=n>=S.step?1:-1;S.step=n;render();$('body').scrollTop=0}
 function render(keep){const s=S.step,y=keep?$('body').scrollTop:0;
- $('screen').classList.toggle('home',s===0);$('back').hidden=s===0;$('steptxt').textContent=s>=5?'ประเมินเสร็จแล้ว':`ขั้นตอน ${s} จาก 4`;
+ $('screen').classList.toggle('home',s===0);$('screen').classList.toggle('done5',s>=5);$('back').hidden=s===0;$('steptxt').textContent=s>=5?'ประเมินเสร็จแล้ว':`ขั้นตอน ${s} จาก 4`;
  [...$('prog').children].forEach((el,i)=>el.classList.toggle('on',i<s));
  const ST=s===5&&S.tab==='info'?STEPS[6]:s===5&&S.tab==='report'?STEPS[7]:STEPS[s];$('title').innerHTML=ST[0].replace('\n','<br>');const sub=s===2?gname():s===5?(S.c.name||tname()):ST[1];$('sub').textContent=sub;$('sub').style.display=sub?'block':'none';$('title').style.paddingBottom=sub?'0':'14px';
  (s===5&&S.scanned&&S.tab!=='match'?(S.tab==='info'?V6:V7):[V0,V1,V2,V3,V4,V5][s])();const v=document.querySelector('.view');if(keep){v.classList.add('still');$('body').scrollTop=y}else{animNums()}}
