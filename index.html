@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ประเมินพลังงาน SME</title>
+<title>SME Energy Matching</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Prompt:wght@500;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy-900:#0a2a4a; --navy-800:#0f3d68; --navy-700:#16527f; --navy-600:#1d6a9e;
@@ -394,8 +394,8 @@ body.rp-open #report{display:block}
   --shadow-1:0 1px 2px rgba(20,39,68,.04),0 8px 24px rgba(21,94,239,.07);
   --shadow-2:0 2px 6px rgba(20,39,68,.05),0 18px 44px rgba(21,94,239,.13);
   --ease:cubic-bezier(.2,.8,.2,1); --t:200ms;
-  --font:"Noto Sans Thai","Prompt","Sukhumvit Set","Leelawadee UI",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-head:"Prompt","Noto Sans Thai","Sukhumvit Set",system-ui,sans-serif;
+  --font:"Noto Sans Thai","Sukhumvit Set","Leelawadee UI",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-head:var(--font);
   /* map ตัวแปรเดิม → tokens ใหม่ (ทุก component เดิมจะใช้สีชุดเดียวกัน) */
   --navy-900:var(--primary-dark); --navy-800:var(--primary-dark); --navy-700:var(--primary); --navy-600:var(--primary);
   --cyan:var(--solar); --cyan-soft:var(--primary-soft); --sel:var(--solar-light); --sel-border:var(--solar-line);
@@ -998,18 +998,357 @@ body.rp-open #paper{animation:paperIn .7s .08s var(--ease-out) both}
 .rec-img>img,.rec .ic.ic-img>img{width:100%;height:100%;object-fit:cover;display:block}
 }
 
+/* ---- ปุ่มเติมข้อมูลตัวอย่าง (มุมขวา ก่อนกรอกข้อมูล) ---- */
+@media screen{
+.demo-row{display:flex;justify-content:flex-end;margin:0 0 12px}
+.demo-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px 6px 10px;border-radius:999px;cursor:pointer;
+  border:1.5px dashed var(--solar-line);background:linear-gradient(180deg,#FFFBEA,var(--solar-light));color:var(--primary-dark);
+  font:600 13.5px/1.25 var(--font);box-shadow:0 4px 12px rgba(255,196,0,.18);transition:transform .2s var(--ease-out),box-shadow .2s}
+.demo-btn svg{flex-shrink:0;width:28px;height:28px;padding:5px;border-radius:50%;background:var(--solar);color:var(--primary-dark)}
+.demo-btn span{display:flex;flex-direction:column;text-align:left}
+.demo-btn small{font-weight:500;font-size:11.5px;color:#6B5A1E}
+.demo-btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(255,196,0,.28)}
+.demo-btn:active{transform:scale(.97)}
+/* ซ่อนปุ่มตัวอย่างเดิม (ยังทำงานอยู่เบื้องหลัง) */
+#sample,#billDemo,#fillDemo{display:none!important}
+.upl .or:has(+ #billDemo){display:none}
+}
+
+/* =====================================================================
+   v6 — ปุ่มตัวอย่างเล็กบรรทัดเดียว · ภาพเตี้ยลง · เลื่อนลื่นขึ้น
+   ===================================================================== */
+@media screen{
+/* ปุ่มตัวอย่าง: แคปซูลเล็ก บรรทัดเดียว */
+.demo-row{margin:-4px 0 8px;height:28px}
+.demo-btn{min-height:28px;height:28px;gap:5px;padding:0 10px 0 4px;border-width:1px;font-size:12px;font-weight:600;
+  white-space:nowrap;box-shadow:none;background:var(--solar-light);position:relative}
+.demo-btn::before{content:"";position:absolute;inset:-8px -4px}   /* พื้นที่กดยังพอสำหรับนิ้ว */
+.demo-btn svg{width:20px;height:20px;padding:3px}
+.demo-btn:hover{box-shadow:0 4px 10px rgba(255,196,0,.22)}
+
+/* หัวกระชับขึ้น → เห็นเนื้อหามากขึ้นโดยไม่ต้องเลื่อน */
+.top{padding-bottom:0}
+.progrow{margin-top:12px}
+.title{font-size:clamp(24px,6.6vw,29px);margin-top:12px;line-height:1.3}
+.sub{font-size:14px;margin-top:4px;padding-bottom:10px}
+.scrolled .top{box-shadow:0 12px 22px -18px rgba(20,39,68,.4)}
+
+/* ภาพประกอบเตี้ยลง (≈ 2.4:1) */
+.hero{aspect-ratio:12/5;border-radius:24px;margin-top:0}
+.hero.gauge{aspect-ratio:2/1}
+.panel{padding-top:16px}
+.pill{margin:-30px auto 12px}
+.opt{min-height:64px;padding:10px 14px 10px 10px;margin-bottom:10px}
+.opt .ic{width:42px;height:42px}.opt .ic svg{width:22px;height:22px}
+.opt .lb{font-size:15px}.opt .lb small{font-size:12.5px}
+.tile{min-height:104px;padding:14px}
+.tile .ic{width:42px;height:42px}
+
+/* เลื่อนลื่น: แยก layer ให้ส่วนเลื่อน + เลิกแอนิเมชันที่ต้อง repaint ทุกเฟรม */
+.body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;will-change:scroll-position;transform:translateZ(0)}
+.a-cloud,.a-sun{animation:none!important}
+.prog i.cur::before{animation:none;background:linear-gradient(90deg,var(--primary),#7AA7FF)}
+.prog i.cur::after{animation:knob .5s .45s var(--spring) both}
+.hero,.rec-img,.cta,.done-hi{contain:paint}
+.hero::after,.rec-img::after,.rec .ic.ic-img::after,.cta::before,.done-hi::after{will-change:transform}
+.done-hi img,.spark{will-change:transform,opacity}
+.title,.sub,.progrow{transition:none}
+}
+@media screen and (min-width:501px){ .top{padding-top:54px!important} }
+@media screen{ .toast{font-size:12.5px;padding:8px 14px;max-width:min(300px,calc(100% - 40px));line-height:1.4} }
+
+/* ---- หน้า 3: ป้ายกลุ่มชิดซ้าย + ปุ่มตัวอย่างขวา ---- */
+@media screen{
+.demo-row.with-pill{justify-content:space-between;align-items:center;gap:8px;height:auto;margin:-2px 0 12px}
+.demo-row.with-pill .pill{margin:0;padding:6px 12px 6px 10px;font-size:13px;border:0;min-width:0;max-width:62%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 10px rgba(21,94,239,.2)}
+.demo-row.with-pill .pill svg{width:16px;height:16px;flex-shrink:0}
+.demo-row.with-pill .demo-btn{flex-shrink:0}
+
+/* ---- หมายเหตุประมาณการ เป็นข้อ ---- */
+.note.note-list{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:14px 16px;font-size:13px;color:var(--text)}
+.nt-h{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--primary-dark);margin-bottom:8px}
+.note-list ul{list-style:none;margin:0;padding:0}
+.note-list li{display:grid;grid-template-columns:78px 1fr;gap:10px;padding:7px 0;border-top:1px dashed #E1E8F2;line-height:1.45}
+.note-list li:first-child{border-top:0}
+.nk{color:var(--text-muted);font-size:12.5px}
+.nv{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.nv small{display:block;font-weight:400;font-size:12px;color:var(--text-muted);margin-top:1px}
+.nt-f{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:var(--solar-light);color:#5A4A12;font-size:12.5px;font-weight:600}
+}
+@media screen{ .demo-row.with-pill .pill{max-width:none;flex:0 1 auto;white-space:normal;line-height:1.25;font-size:12.5px;text-align:left;border-radius:16px} }
+
+/* ---- ฟอนต์เดียวทั้งแอป: Noto Sans Thai (รวมรายงานและตัวเลขในภาพ) ---- */
+body,button,input,select,textarea,.toast,.kp,#report,#paper,#paper *{font-family:var(--font)!important}
+svg text{font-family:var(--font)}
+#paper{line-height:1.42}
+
+/* ---- หลังประเมินเสร็จ: ซ่อนแถบขั้นตอน ใช้แท็บด้านล่างแทน ---- */
+@media screen{
+.tabbar{display:none}
+#screen[data-step="5"] .progrow,#screen[data-step="6"] .progrow{display:none}
+#screen[data-step="5"] .title,#screen[data-step="6"] .title{margin-top:14px}
+#screen[data-step="5"] .tabbar,#screen[data-step="6"] .tabbar{display:grid}
+#screen[data-step="5"] .foot,#screen[data-step="6"] .foot{padding-bottom:8px}
+.tabbar{position:relative;flex-shrink:0;grid-template-columns:repeat(3,1fr);gap:4px;
+  padding:6px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);
+  border-top:1px solid var(--border);box-shadow:0 -10px 24px -18px rgba(20,39,68,.35);z-index:5}
+@supports (backdrop-filter:blur(12px)){.tabbar{background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}}
+.tabbar button{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-height:52px;border:0;background:none;border-radius:16px;color:var(--text-muted);font:500 12px/1.2 var(--font);cursor:pointer;
+  transition:color .25s}
+.tabbar button svg{transition:transform .35s var(--spring)}
+.tabbar button.on{color:var(--primary);font-weight:700}
+.tabbar button.on svg{transform:translateY(-1px) scale(1.08)}
+.tabbar button:active svg{transform:scale(.9)}
+.tab-ind{position:absolute;top:6px;height:52px;left:12px;width:calc((100% - 24px - 8px)/3);border-radius:16px;
+  background:var(--primary-soft);transform:translateX(calc(var(--ti,0) * (100% + 4px)));transition:transform .45s var(--spring)}
+.tab-ind::after{content:"";position:absolute;left:50%;top:-6px;width:28px;height:3px;margin-left:-14px;border-radius:0 0 3px 3px;background:var(--solar)}
+.kp.show ~ .tabbar,.screen:has(.kp.show) .tabbar{visibility:hidden}
+}
+@media screen and (min-width:501px){ .tabbar{padding:6px 22px 18px}.tab-ind{left:22px;width:calc((100% - 44px - 8px)/3)} }
+
+/* ---- หน้าผลประเมิน: ปรับตามคำขอ ---- */
+@media screen{
+#screen[data-step="5"] .title{padding-bottom:6px!important}
+#screen[data-step="5"] .panel{padding-top:6px}
+#screen[data-step="5"] .done-hi{margin-top:0}
+/* แถบ 2 สีต่อเนื่อง */
+.split.two{gap:0;height:14px;border-radius:999px;overflow:hidden;background:#E3EAF3}
+.split.two i{border-radius:0;transition:width .8s var(--ease-out)}
+.split-l{gap:10px;align-items:flex-start}
+.split-l span{white-space:nowrap;font-size:12px}
+.split-l b{font-size:18px}
+.dot{width:9px;height:9px}
+/* ตาราง: หัวข้อหนา */
+.u-row>span:first-child{font-weight:700;color:var(--text)}
+.u-row.tot>span:first-child{color:var(--primary-dark)}
+.hint .avg{display:inline-block;margin-top:4px;color:var(--primary-dark);font-weight:700}
+
+/* ---- แท็บชัดขึ้น ---- */
+.tabbar{background:#fff!important;border-top:1px solid #D8E2F0;box-shadow:0 -6px 18px rgba(20,39,68,.08)}
+.tabbar button{color:#4E5D72;font-size:12.5px;font-weight:600;gap:3px}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button.on{color:#fff}
+.tab-ind{background:linear-gradient(135deg,#3B7BFF,var(--primary) 50%,var(--primary-dark));box-shadow:0 6px 14px rgba(21,94,239,.32)}
+.tab-ind::after{top:auto;bottom:6px;width:16px;height:3px;margin-left:-8px;border-radius:3px}
+.tabbar button.on span{padding-bottom:4px}
+}
+/* ปุ่มหน้าแรกในแถบรายงาน */
+.rp-bar .home{background:rgba(255,255,255,.14)}
+.rp-bar .home svg{transform:none!important}
+.rp-bar button{white-space:nowrap;font-size:13px;padding:8px 10px;flex-shrink:0}
+.rp-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:440px){ .rp-bar span{display:none} .rp-bar .pri{margin-left:auto} }
+
+/* ---- v8 ---- */
+@media screen{
+.partner{display:none!important}
+.bar h1{font-weight:800;letter-spacing:.4px;font-size:16px}
+.hint .avg{display:inline;margin:0;color:inherit;font-weight:400}
+/* ปุ่มหน้าแรกบนหัว (เฉพาะหลังประเมินเสร็จ) */
+.homebtn{display:none;flex-shrink:0;align-items:center;gap:6px;height:40px;padding:0 14px 0 11px;border:1px solid var(--primary-line);
+  border-radius:999px;background:#fff;color:var(--primary-dark);font:600 13px/1 var(--font);cursor:pointer;
+  box-shadow:0 1px 2px rgba(20,39,68,.06),0 6px 16px rgba(21,94,239,.10);transition:transform .2s var(--ease-out),box-shadow .2s,background .2s}
+.homebtn svg{color:var(--primary)}
+.homebtn:hover{background:var(--primary-soft);box-shadow:0 1px 2px rgba(20,39,68,.06),0 10px 22px rgba(21,94,239,.16)}
+.homebtn:active{transform:scale(.95)}
+#screen[data-step="5"] .homebtn,#screen[data-step="6"] .homebtn{display:inline-flex}
+#screen[data-step="5"] .back,#screen[data-step="6"] .back{display:none}
+#screen[data-step="5"] .app-logo,#screen[data-step="6"] .app-logo{display:grid!important}
+}
+/* แถบรายงาน: ปุ่มทรงเดียวกันทั้งหมด */
+.rp-bar{padding:10px 14px;gap:8px}
+.rp-bar button{height:38px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:600;gap:6px}
+.rp-bar button:hover{background:rgba(255,255,255,.18)}
+.rp-bar .home{background:rgba(255,255,255,.1)}
+.rp-bar .pri{background:#FFC400;border-color:#FFC400;color:#123B80}
+.rp-bar .pri:hover{background:#FFD23F}
+@media screen{
+.homebtn{width:44px;height:44px;padding:0;justify-content:center;border-radius:50%;border:0}
+.homebtn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bar h1{font-size:15.5px}
+}
+@media screen{
+.tab-ind::after{top:5px;bottom:auto;width:18px;height:3px;margin-left:-9px;border-radius:3px}
+.tabbar button.on span{padding-bottom:0}
+.tabbar button{padding-top:4px}
+}
+@media screen{ .tab-ind::after{top:-5px;width:22px;margin-left:-11px} }
+
+/* ---- Splash (หน้าเปิดแอป) ---- */
+.splash{position:absolute;inset:0;z-index:19;overflow:hidden;cursor:pointer;
+  background:linear-gradient(170deg,#1B4FD8 0%,#0F3399 38%,#0A2470 68%,#071A52 100%);
+  transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1)}
+.splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
+.splash:focus{outline:none}
+#spStage{position:absolute!important;left:50%;top:50%;transform-origin:center center}
+.sp-word{margin:0}
+.sg-sme{background:linear-gradient(180deg,#FFCB2E 0%,#FFAA00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sg-in{animation:sgIn 1s cubic-bezier(.2,.7,.2,1) both}
+.sg-in2{animation:sgIn 1s cubic-bezier(.2,.7,.2,1) .25s both}
+.sg-breathe{animation:sgBreathe 3.6s ease-in-out infinite}
+.sg-shine{animation:sgShine 3.2s cubic-bezier(.6,0,.3,1) 1s infinite}
+.sg-spin{animation:sgSpin 1s linear infinite;transform-origin:50% 50%}
+.sg-twinkle{animation:sgTwinkle 2.8s ease-in-out infinite}
+.sg-twinkle2{animation:sgTwinkle 2.8s ease-in-out 1.4s infinite}
+@keyframes sgIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes sgBreathe{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes sgShine{0%{transform:translateX(-160px) rotate(20deg)}55%,100%{transform:translateX(200px) rotate(20deg)}}
+@keyframes sgSpin{to{transform:rotate(360deg)}}
+@keyframes sgTwinkle{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.sg-in,.sg-in2,.sg-breathe,.sg-shine,.sg-spin,.sg-twinkle,.sg-twinkle2{animation:none}.splash{transition:none}}
+/* แถบสถานะในกรอบมือถือเป็นสีขาวตอนแสดง splash */
+@media screen and (min-width:501px){
+  .screen.splashing::before{color:#fff}
+  .screen.splashing::after{filter:invert(1) brightness(2)}
+}
+
 </style>
 </head>
 <body>
 <div class="device">
  <div class="screen" id="screen">
+<div class="splash" id="splash" role="img" aria-label="SME ENERGY MATCHING กำลังโหลด" tabindex="0"><div id="spStage" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; font-family: var(--font); background: linear-gradient(170deg, #1B4FD8 0%, #0F3399 38%, #0A2470 68%, #071A52 100%)">
+
+  <div aria-hidden="true" style="position: absolute; left: -95px; top: 110px; width: 580px; height: 500px; border-radius: 50%; background: radial-gradient(ellipse, rgba(90,149,255,.55) 0%, rgba(59,123,255,.18) 42%, rgba(59,123,255,0) 70%)"></div>
+
+  <!-- halo arcs -->
+  <div aria-hidden="true" style="position: absolute; left: 25px; top: 155px; width: 340px; height: 340px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); box-shadow: 0 0 60px rgba(90,149,255,.18)"></div>
+  <div aria-hidden="true" style="position: absolute; left: -45px; top: 85px; width: 480px; height: 480px; border-radius: 50%; border: 1px solid rgba(255,255,255,.07)"></div>
+
+  <!-- icon -->
+  <div class="sg-in" style="position: absolute; left: 0; top: 0; width: 390px; display: flex; flex-direction: column; align-items: center">
+    <div style="margin-top: 236px; position: relative; width: 132px; height: 132px">
+      <div aria-hidden="true" class="sg-breathe" style="position: absolute; left: -74px; top: -74px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(255,205,60,.45) 0%, rgba(255,205,60,.14) 34%, rgba(255,205,60,0) 62%)"></div>
+      <div aria-hidden="true" style="position: absolute; left: -10px; top: 70px; width: 152px; height: 90px; border-radius: 50%; background: radial-gradient(ellipse, rgba(2,10,40,.7) 0%, rgba(2,10,40,0) 70%); filter: blur(10px)"></div>
+      <svg aria-hidden="true" width="300" height="140" viewBox="0 0 300 140" style="position: absolute; left: -84px; top: -4px">
+        <defs>
+          <linearGradient id="sdOrb" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#FFC21A" stop-opacity="0"></stop>
+            <stop offset="0.25" stop-color="#FFC21A" stop-opacity=".9"></stop>
+            <stop offset="0.75" stop-color="#FFE07A" stop-opacity=".9"></stop>
+            <stop offset="1" stop-color="#FFC21A" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <ellipse cx="150" cy="70" rx="142" ry="34" fill="none" stroke="url(#sdOrb)" stroke-width="2.2" transform="rotate(-12 150 70)"></ellipse>
+      </svg>
+      <div style="position: relative; width: 132px; height: 132px; border-radius: 36px; overflow: hidden; background: linear-gradient(160deg, #FFFFFF 0%, #F4F8FF 60%, #E6EEFF 100%); box-shadow: 0 30px 50px -14px rgba(2,10,40,.75), 0 0 50px rgba(90,149,255,.35), inset 0 1px 0 #FFFFFF, inset 0 -3px 8px rgba(26,63,168,.08), 0 0 0 1px rgba(255,255,255,.9); display: flex; align-items: center; justify-content: center">
+        <svg role="img" aria-label="SME ENERGY MATCHING" width="86" height="86" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="sdBolt" x1="0.2" y1="0" x2="0.8" y2="1">
+              <stop offset="0" stop-color="#FFDA4A"></stop>
+              <stop offset="1" stop-color="#FFA800"></stop>
+            </linearGradient>
+            <linearGradient id="sdHouse" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#2554D6"></stop>
+              <stop offset="1" stop-color="#14349A"></stop>
+            </linearGradient>
+            <linearGradient id="sdLeaf" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="#2F9A2A"></stop>
+              <stop offset="1" stop-color="#7BD14B"></stop>
+            </linearGradient>
+          </defs>
+          <path d="M18 47 L50 20 L82 47 V82 H18 Z" fill="none" stroke="url(#sdHouse)" stroke-width="9" stroke-linejoin="round"></path>
+          <path d="M55 36 L39 60 H50 L45 78 L63 52 H52 Z" fill="url(#sdBolt)" stroke="url(#sdBolt)" stroke-width="2.5" stroke-linejoin="round"></path>
+          <path d="M66 94 C 64 76, 76 64, 96 64 C 97 82, 86 95, 66 94 Z" fill="url(#sdLeaf)" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"></path>
+          <path d="M70 90 C 76 82, 82 76, 90 70" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path>
+        </svg>
+        <div aria-hidden="true" class="sg-shine" style="position: absolute; left: 0; top: -40px; width: 34px; height: 220px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0))"></div>
+      </div>
+      <div aria-hidden="true" class="sg-twinkle" style="position: absolute; left: 140px; top: -14px; width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px rgba(255,214,90,.9)"></div>
+      <div aria-hidden="true" class="sg-twinkle2" style="position: absolute; left: -22px; top: 112px; width: 6px; height: 6px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px rgba(90,149,255,.8)"></div>
+    </div>
+  </div>
+
+  <!-- wordmark + tagline -->
+  <div class="sg-in2" style="position: absolute; left: 0; top: 400px; width: 390px; display: flex; flex-direction: column; align-items: center">
+    <div class="sp-word" style="margin: 0; font-family: var(--font); font-size: 36px; line-height: 1.12; font-weight: 800; letter-spacing: .5px; color: #FFFFFF; text-align: center"><span class="sg-sme">SME</span> ENERGY<br>MATCHING</div>
+    <div style="margin-top: 16px; display: flex; align-items: center; gap: 14px">
+      <div aria-hidden="true" style="width: 28px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.45))"></div>
+      <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500; color: #D3E0FF; text-align: center">ค้นหาแนวทางลดค่าไฟ<br>ที่คุ้มค่าสำหรับธุรกิจของคุณ</p>
+      <div aria-hidden="true" style="width: 28px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,0))"></div>
+    </div>
+  </div>
+
+  <!-- soft skyline: offices + factory -->
+  <svg aria-hidden="true" width="390" height="160" viewBox="0 0 390 160" style="position: absolute; left: 0; top: 520px">
+    <defs>
+      <linearGradient id="sdCity" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8FB0FF" stop-opacity=".32"></stop>
+        <stop offset="1" stop-color="#8FB0FF" stop-opacity=".04"></stop>
+      </linearGradient>
+      <linearGradient id="sdCityFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8FB0FF" stop-opacity=".18"></stop>
+        <stop offset="1" stop-color="#8FB0FF" stop-opacity=".02"></stop>
+      </linearGradient>
+    </defs>
+    <g fill="url(#sdCityFar)">
+      <rect x="20" y="100" width="16" height="60"></rect>
+      <rect x="40" y="88" width="14" height="72"></rect>
+      <rect x="96" y="70" width="18" height="90"></rect>
+      <rect x="150" y="92" width="14" height="68"></rect>
+      <rect x="196" y="60" width="16" height="100"></rect>
+      <rect x="232" y="84" width="12" height="76"></rect>
+    </g>
+    <g fill="url(#sdCity)">
+      <rect x="58" y="110" width="22" height="50" rx="1"></rect>
+      <rect x="118" y="78" width="24" height="82" rx="1"></rect>
+      <rect x="168" y="104" width="20" height="56" rx="1"></rect>
+      <rect x="214" y="40" width="26" height="120" rx="1"></rect>
+      <path d="M262 160 V96 L282 84 V96 L302 84 V96 L322 84 V96 L342 84 V160 Z"></path>
+      <rect x="348" y="30" width="7" height="130"></rect>
+      <rect x="362" y="44" width="7" height="116"></rect>
+    </g>
+    <g fill="#8FB0FF" fill-opacity=".18">
+      <circle cx="74" cy="148" r="9"></circle>
+      <circle cx="160" cy="146" r="11"></circle>
+      <circle cx="252" cy="148" r="9"></circle>
+    </g>
+  </svg>
+
+  <!-- deep wave base -->
+  <svg aria-hidden="true" width="390" height="244" viewBox="0 0 390 244" style="position: absolute; left: 0; top: 600px">
+    <defs>
+      <linearGradient id="sdWave" x1="0" y1="0" x2="0.4" y2="1">
+        <stop offset="0" stop-color="#0C2A7A"></stop>
+        <stop offset="0.5" stop-color="#081F5E"></stop>
+        <stop offset="1" stop-color="#051440"></stop>
+      </linearGradient>
+      <linearGradient id="sdRim" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#FFFFFF" stop-opacity=".9"></stop>
+        <stop offset="0.35" stop-color="#FFD24D"></stop>
+        <stop offset="1" stop-color="#FFB400"></stop>
+      </linearGradient>
+      <radialGradient id="sdFlare" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"></stop>
+        <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <path d="M0 84 C 110 44, 236 92, 390 18 V244 H0 Z" fill="url(#sdWave)"></path>
+    <path d="M0 84 C 110 44, 236 92, 390 18" fill="none" stroke="url(#sdRim)" stroke-width="5" stroke-linecap="round"></path>
+    <path d="M0 132 C 120 96, 250 132, 390 76" fill="none" stroke="#FFFFFF" stroke-opacity=".14" stroke-width="1.5"></path>
+    <path d="M0 196 C 140 160, 260 196, 390 150" fill="none" stroke="#FFFFFF" stroke-opacity=".08" stroke-width="1.5"></path>
+    <ellipse cx="70" cy="66" rx="70" ry="10" fill="url(#sdFlare)" opacity=".8"></ellipse>
+  </svg>
+
+  <!-- loader + partner -->
+  <div style="position: absolute; left: 0; top: 738px; width: 390px; display: flex; flex-direction: column; align-items: center; gap: 18px">
+    <svg role="progressbar" aria-label="กำลังโหลด" class="sg-spin" width="30" height="30" viewBox="0 0 30 30">
+      <circle cx="15" cy="15" r="12" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3"></circle>
+      <path d="M15 3 A 12 12 0 0 1 27 15" fill="none" stroke="#FFC21A" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+    <p style="margin: 0; font-size: 12px; line-height: 1.5; font-weight: 500; color: #AFC4F5; text-align: center; letter-spacing: .2px">โครงการร่วมกับ การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)</p>
+  </div>
+</div></div>
   <header class="top">
     <div class="bar">
       <button class="back" id="back" aria-label="ย้อนกลับ" hidden>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <span class="app-logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="#FFC400" stroke="#FFE27A" stroke-width="1" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
-      <div class="brand"><h1>ประเมินพลังงาน SME</h1><span class="brand-sub">โครงการร่วมกับ <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAACGCAMAAAAy0KlUAAABdGlDQ1BJQ0MgUHJvZmlsZQAAeJx1kDtLw2AUhp8kSsQLFezQwSGIOqm0CkUXwRZRoYjUCra6pGnSCr2EpEWKq+AqKIgu3gb9BboKzoKgKIK46qzooiWSVqiIPcv38J7vPZzzghjLajm7yQ+5fNGKToWUxXhCkZ+R8SHhRVY125yYm4vQsD7uENz3ZtCd1fjfv9WW0m0NhBZgXDOtIgjTQGS1aLq8DXi1jJoC4RQYsBbjCRBuXT1Z4xeX0zX+ctmKRcMgdgJK+hcnf7GWsXIg+oHeXLak/ezjXtKu5xfmgR6gG5soU4RQmGGSMEECjBEkyCDDDBGABn5/1T9LAQWNAiZlLFZIk6HIAAolbHQUDCx0dLKU3fz/5mobI8O16e0haH5ynLc+kLegsuk4n4eOUzkC6REu8nV/4QBG30HarGu9++BZh7PLupbcgfMN8D2YqqVWJQkQDQNeT6AjDl3X0LpUy+ynz/E9xNYgcgW7e9BvgGf5GwCKZ7cGitQxAAAAkFBMVEUUQZT9zQAJTaARO5cAAPoCKH4UQZMTQJMOOJnlBy0AeHlaa2jdshz1AA+UkEoLOZlra222ozXwaRc5VnziAi3//wDiAy61Ayr/BGEHNp6qAFVVVar/AP8Af/8A//9/AAr///9/fwB4DHhZAP9+gVYAEcivGUz/f38APz8A/wBVKHW9Yj6qVar/fwD/VaoAAAB5cfGgAAAAMHRSTlP8/hEYBAOeX1T8AvT+DP6RAv7+36QBXQMC+QMDAQIBAgECAgP/TO8CBAGc/wMCAwC9Rrh+AAATkklEQVR42u2dCZfbNg6ANSBBqpR8jTPJzGaSpkmPvfn//90ClG+LFCWRspw1X1+bJhkf/AQQF4HC9lwSfxNFVaxWpbBoH2vuq+j597/yz9RP9WazqUprHhv4kwH+amW5Wj41q5JWPnbwZwEsSVoR7Kr6vd7xfVqWFh47+JMApuN2/WJtuZfeRoL/jfg4h38KwKSMSRuXq+qELwnwY/0kgI0tq2qllvXTmQBLKciYfpzDdw9YLmTx9HRG1xGuqmW9XD1s6bsHjLbcPPnWVr64v7RY/Epr8djSOwS8tsrLl52lx7p7CVa1j2+t5NrJ7249tvQuAa+8gHfO8MJ++IXXB/u3x6beH2CjQhoanQA7vr8sHoDvU0V3AH79CQRYojEAgMDLoJT/N4DZC34KqugTAX7lnRr4YQyMWYO9NWkQW3/aAKIZzjn8cQf+WN9NKWLkV/j5PtUr+guf7Me9AMPnJvJ1J8sg7D4rChACNK1Sa/6lOOz4GMp3IMEvHOUISTDagwADW9FyqHaj7S2HLq1Fb8ndiRFhVUoV10spelXYQ+754vRtQp+2FN4fG74J128DEYDX734nqckZ7gX4lzVlE9W2qgqxHqKmi3Gr59PExITQqvN1lXZPgsQ+zy1aHX5VaI0AQtePZdiVJlDp19CAC7s/gcvCxatrRbpvzoDdp4uBe4Qs3PbHv4PteHHVWhADFiYHTJ/1jyoA2Niv/3R8/zxmm37/w85YgvnYhR50d0tDHw0tul6uVR/cBLD99u4HrMBK9acD/HySbaqUeJHzBOzwqkHvsAKZSkMXhWjT0TcBjFZWARtLFptGQ1+Qf0c5Q8BsEGs19C2izUewne+h23T0TQDLAOBKltunZ8e3bjGv5wZYwhi87UwGamg6hOVcVDRFOn73AN5UVMTTIsDMvnfVZfavQniFGvEOOtbMiuLUVnd8G8BMeOn3lBoBfn5qIQxzAkziC2rUO4jYCA5aNUwf3Aiw/csGgh3tAkxL2fWMAJM6GeljqniVBANf7laAcU3XGTzhjtojwOwNf54PYBynnXsdwSbiCG5XCLcCzIaWzxn2CrALU88FMMbt+YDg0zAnyXOk3wwwo9r2E+BZAU4SAhTxm6XiVD7OB7Bde7L+rT7SzACTebUav1UqXoBh6BNzQ8DYbkn7BZjO4H/MA7A0ViXYqugjGGPVBVzp6BsClt9kUfcR4Kenwv5nFoAxCd/22OLAMJZPR98QMH07GUj8P7UwXvbU0Zm+CqThG30Ey3h7bkZGVkdxJV1zaI9Ui5sDTiS/JG7RYSwd/8zAfADj+6kEL3k19x02LL5vzZ/V9ZksUzDr7zcGjH3sZ7Vf445g1fbKUcc6UEr9VoDXpwK8fCu2RQN181aT+Bbu1/Xb7+eyTITj04Zdux5aK6XtiASr4rINvCh90ys1xAtufUfd/phdhjoggbt+9r36qOizI3hL/7OD6ug2v+aMcFFdnMNjJbh3sdVZdlDElms4c9vsimb3Py+OhQFoxyQaBHgO4SszS/iXb4O8C6BHGcTF7e/i6Qh1D7jmf50DJsIitijR556I0JfeLRTQnt1/i6LLhbPywrfiotkGsupzBLef+cKMc73cBxkgAT0Av54D3u5RFkfAm4IO4QvAPRLD0d5ij6ey4wBW/NIYKNQwDjLJsY7V0NK0H4UqMngivcsLWArfj/QALM5t6KMEN3TdeVy/LaviEnB8ziE54M4AtObqdhlZXjvmPZUvlQXRNeQyIME4XoIvy9/5DG6MrOUbQV0WzqKuyOB6uwC8uZ0Ed3jACm3kfQgZf28CW+3g0pdBjNfReQHD5fUVOnnr5d5jIjO6ke56c/jdo6yLWECpAXcoaG1zdAlqD4uCD3D00Z4Z8DqU8Q+v+HZaqQGjCAcZhM1wha0dpPRqk+gqkayAW8OUNa8ZAw4LcKZOjO1xFZJTX8Alus4rK+C2ytnal+ifC+CgCwyZmri1CyqdtMaro3EeKvrqglIgjTQLwMEYpcjE10PBJaIgMuFwE8DXOjpWgG8nwejnW+bqlOuJJWPApI/9epndJLjM9z9HCjDVdaztDQCbQBBaZ+uE3E7RmcroySPE6ujMgOXn99XmSoBP16Gqo94482uz5Mh0Xch3vAXgkA8MkO1Gt/E+UN6oi5xFoMPKl7OKjucrwM0fUihrVZYrahhOS1XLQsZLS0rAoay7ztYl15MMahJR0o6qFMkNmI/hE8LtAlwXpbyIq/bQhikBBxKrKl8XZI9hJ/YFE2MOjOyAaVuOhpZHgLnt3ctn3K/f+rXrSAtYTS/A9EAHniifX67mAvi0sLI+Wc9HAeb7/ud9aqy9DeCADZ1v1oTnRsNORKXP7IuLuUwA2P7VWnZ3sKfJoFqPsV4SAg7Y0PlMaL+GNsG2Dno2gFvL7uq9AG/onb7a9IA1AnYtYaKjHJCvyZOnvk90fKi4ivopAMPiKML1vuZuL8B1H4M5d8mO/whW+QTYo4MP7+h1lKKeuSkAH+uyNhX7QWq5s6efm7TgyPSMt6gmYl3GpnA+Gvr40SSOMPsmBVzvvHO109DOgv7xzWYBPOCSQOB2UKA4Usas/mrjKJ++Em01F8CHpBI3wgJYv6hGQz8Pue6dE3Cg+lTYfAs6enF4E5hgZwZ43+d9exTgBK3fUwLW/a8IcpVp5xLYN/98diaI4Y7CJCr6277pXUOTcB8EmKon33E+KnrV18aKvQHhT0ShT0NDp+0XY/lNAvgQ6lD2pWmvdMwZ9r4OnFWCVV8bazxgj2GHJyay901wLkbWToRr3k8GzBr6X7sOd1UmN2kAYGn9fGAcYO8T4gljnRlQ6A9mmXkA3olwXTYJMM1NDFeymVdZr+R6JoD9r+U1okcDxogj2PvBIpy3qQA7M6updV5Y7hP9kX676UK6HFkokRCwmR6wR2vAhXGghwbIpwFMdwW3J4C5T/TiO2WNSlcYvR+SdXvAoncx5VjAvjDVeZAK/HY0zgPwb25Axx6wE+BXl0nkqw0jJwonAyxDgGUuwDrKPoahOnoiwM0UNKeMPzkN/brYqW46iEe6wskABwJZ2QCbbicp7CiZeQD+7OpnncHsZuk4Aebv92JXm7lIcDBSmUdF+5K9lw8U+oNZOAvALmO4WfEsHRbgD3Y/zA7/kttKjBpFOo0E5wEMPg0NcQ9CdyXvdCq6JgFe7GbpLOg/J34gzANw4AzOZUV7VO/13zZDEw4TWtEUs/rcjCs8m3QmM6ULhwCGyd0kEbn33vfpuoU2YaCjEgvTaOgTAW4a9s4FsJg4kuXr9ULFKOZ8CYSen2xSwOsfxS4x+OlSgMevKfxgnecMRl+HhvjvqeYA2AnwsqQTuBHgxVwB2yJXNqkdcHtjjqIEaOl8owYlhSfJB7s4lnOGPi0+kgC/2gkAx3TZARE5lkpl8YO/pGhv1XHjcQrAhnxdziSRhv4baejEAmyLcfcr49oXgs0AGFO0o+5ICk8A2Lxz2uigoZMPC/bZRQZM55LxVbMwqsOkB3CKfpjhqUxTXF1xqULS0MY5wTQ12E4jwZDw8rc/oEAG7unqETTGNA0Iw8GsCSTYJZIaDb1YJD+BUwIOdKiMH53SB3CSmaH6toB3qeCKG8b8usggwEnvJomBcjIIcJqO8h3P3gSAWUMfTKz0ApwSsPRveZkcsEzV5DkYzMoOuJkEfjCx0gtwSsAhq2dcb1TdNiolUZPnoI7ODdgcNLTLM3w4C1LODnDIJo6duBcNIVVP+bCOzg14Z0Nv+deLxYfF4tc5Aw61YFGpAadrwx+6hZYd8KuTYEVFOyTAH9OfwGmNrJBURV7xjwVs0gEO2Qe5AQvruuxsqeKdiu0ynMCpAQc8F5kUcDINHVYuudso7a4l0Rn83S4+2gx8kwIOilWcIR0LuL0xx1AdfatOd++i2LVZef2USYDT9uiQdmynykjAJuUcjYABOFGvyiVZAWKRRYATN2EJRpdAmlSAE4WxOhMOWQHLw73RmicAld+lnb8EQ7DZO2AyCVbFFDp6DODOzn6nLbLqPk3cWwehTNOMNNzPn1xOTAJYpp105K9LHQHY9B09WnM4y45o+DdNO2HoGtiQArBXQysxYARSIJg1GLAhK6GrzQuet4uuB7drkBJ4TpGZpuN7eCRHV/+xOALed9HBF1f9h+QOA4xuXERnDk1uL3pAf5PDT1ptpukX3RWAEOGpHFGA/dsOEv0TkFD3rusdLMFC0YS78KF61Q586EVR2vOSa87ap0xNPHWFW6xZhHGA/e8hhvXCDVxPHQSYtxvouwS7Sl5P/y6G3ULiUYB0ACnVGktKDZim03Xnb6xFMwKwN4wVrrAy/Ru1DQQsaGYb+Ap4/YDr1Y/vgzad9QX9S/RR0f7JbR09rCLqrGjqqBtudz250MRJmBgULQsWjWF6FQ285TLsBi+XF0oaBoQPtXXjPBWarFWVvYZ/a9gxRcFVWWJPOwYwDNr1oH2g0wLm4VElP4dBO4tEWJXnntKAno8G3XkgPKN+/cXqkaNyr/WCxLhED40ghauzJGb//U5SR19WiX0TDoMlGDlTRGJMtakhq4DW6pRwX09JutiS09CZJoC3yXqfinQaM+3aXrYPAG8H7I14d93YD6SgRIZQpXbmRsj1N2s0clWdTcvpx5eH9Got6K0EyqkAp40UX5Hza9ouyxBChb2QVoKNcHEdpWNqFesj4D6N7SQ3CiwL0nsavMd9lkAuJg0VXwHWg1tiip4Jh8GApdU8JtnwtJmyS68c53Js+rjCnJ1l+4qOOgV9Q5UjI/WQlvAZYON3kmC4/Qc5sknOZRRd1SziJOLhbjjEOqRkWPEhIAqfBZ0PsExL+BSwf8+7m+YEzo72hMMIwPCl1PR2UAqrOoxjtIfxWHXx43N8SElZRxhUYFZ6plwbhQxVHsD+etnuXhYYunyBaQGTKahJeGUThQjfYVwflTS5wiJ6GAmyJadEtvvBIY9ZpkzZngP2vW5EnC9gHBibGjAAe/tloSDiAktxoqQFrtfQnUKiJ6dR0FoImBwwyXA6W/pM+cKIwRB9g1njKzq0c1EFhp++k1HCdezYPdMkGCyq8IfJVw6RjvAJYL+rE1OYa3omHEYBxi/YCJkmXYpdrdAOIlxvaTCH6uwewppMNY8P3EJF72KKKjVgf9vxuLntotcNh3ESzOYCfXStSsrHi+BRCS/lMd6x2XSexfRVjdIrVhBg7K0A86OV/I4njrqiGgxmYWLAdAxr4IA0hSx1h4b5asuL9H+IML1y2dhXuuvmZlbAVn5JIsRHwP7S67jRPYFglk4O2L2CLpivE2Vban8qnNRdtayq+ixs6fnbXwTwJ3BnsEB7OwluhBhUutsl/nMdIkeZBRylL8kBS9YYuhAsv5Q3U7BaBcZPiFJKdURclf4zh4L3/BF0t4WeGzBbA2MRq6MW8pfW4+hkZkuR3GgJ5no45w/T71LcQ2sROj7cT9AA6L1PTE9261MLSrPe5/IngbcG7CoMRyhqddqtCUc5SR2mfes18wSF74WrtyBTS9mwxCFKpHShPNpbhX1p75VBCQaq6jMibyO06NIAh1j3Z9yUfpxUdfvxxEbpZciOhgyAv1C8g05KenzIJmJTsPlK6E8h2kMtz8Y1KL0uEyDfF5USUZ0xJgHMD6fL6KsebHdFH2dmiT88JmLr1UwfHZ3s6gqZWhRqK6guDm3XBG/87z7qsZULaa8ak/KBTvpZAcQENdU0gPmhbR5d3SnJFDpv/i495xhpIqnoesRgwgGiAUM8YAl88JcFhZy42IWuaJEtrwM24UJuaxo0W1UXR7DhTXQvJpq6zahtj+hZGFx9ChBgV3VAaeqWGg76HYoIiH2pUet1G/Q0VezzMUT7V25/EfS0cQwWd19rDXqqS81WEWlpdn+CRj/Z07QVZFKfPrUoXHVOWZSSNT2ByzfSdcyiC2hw8j+H8YQnG0Zya6S949V6U0IpF+pgysAPOJiY3Mj+71DVPuvlgkwZ4eKtIv5ey8hlhxVPU1c7cxk8599EOeTzYq+P4bn9gH02qCdg6llNNgUX8ih2Gq2LIcvLM0weLa31rs5U7A0YNptdcoH4koaXiPfwrLt9RRz6oNyTBO8NPAp3UPloAUKfG9OyxfhyFrNpTlLBHYB1UdIxrsA+1uwAS2Dbitw5qu9gj2lnJR0v1JL5ed2JpCw4OstRSf6H4wnA9XUCH7s8QwmWLqXEHiCZ0sQOpHMFpVPCzr04Nb2MC2kI4NoYuiTxlSwse9Wk+7FmpaKbWCvfMqFztFhR7EfD/tonV0YSbyPNifVM2Si6hMhREpLuoinBQnyI72wBUyET5flIOXPMVbBMOmrsRBDLE+kUJN0s1E0dAytoRRkLy+6ZfGzwnCWYVylcXvorlb0yZv63RtWEWsgDVnxTkNKMnKYgtc15X3oEih6u0WPdErDZJU20ZIur4KCWO165AEdIXeqS0Trx5sOaz1+X99UlR/Ieu3sHEswRADK3JBfFK6m0IY7IRex0DYLieYRW8D9E1halK3wunD/1UM53AvhYnEInq3UxWxJg6xwnjjMzZ5Jv1twlX9x3JXsSHtJ7V4DNPlOmXG0ksF6mHyypFIttL84uIv8BWdbSPPb0DiXYlXAAt1ui2Jbk+BTHL1Vz+tJ/VnxbUpyEuR7r3gDbXYAWndUlXNiDzSu6jsiBzObGID7gzm79D4qkRGKyKCwqAAAAAElFTkSuQmCC" alt="กฟผ. (EGAT)" width="50" height="14"></span></div>
+      <div class="brand"><h1>SME ENERGY MATCHING</h1><span class="brand-sub">โครงการร่วมกับ <img src="data:image/png;base64,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" alt="กฟผ. (EGAT)" width="50" height="14"></span></div>
+      <button class="homebtn" id="homeBtn" type="button" aria-label="กลับหน้าแรก"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/></svg><span>หน้าแรก</span></button>
     </div>
     <div class="progrow"><div class="steptxt" id="steptxt" aria-live="polite">ขั้นตอน 1 จาก 4</div><div class="prog" id="prog" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
     <h2 class="title" id="title"></h2>
@@ -2606,7 +2945,7 @@ function v4(){
     bill.oninput=()=>{const raw=bill.value.replace(/[^\d]/g,''); S.bill=raw?+raw:''; bill.value=raw?fmt(+raw):''; updateLoadQ(); $('billF').classList.remove('err'); $('billE').classList.remove('show');};
     $('dr').oninput=e=>{S.day=+e.target.value;S.dayTouched=true;$('dv').textContent=S.day+'%';$('nv').textContent=(100-S.day)+'%';$('dnNote').textContent='ปรับเองแล้ว';updateLoadQ();};
     $('meter').onchange=e=>S.meter=e.target.value;
-    $('sample').onclick=()=>{S.bill=100000;S.day=20;S.dayTouched=true;S.meter='tou';S.hours='24';S.days='7';S.roof='600';S.alloc={off:100,on:0};v4();toast('เติมข้อมูลตัวอย่าง: โรงน้ำแข็งขนาดเล็ก');};
+    $('sample').onclick=()=>{S.bill=100000;S.day=20;S.dayTouched=true;S.meter='tou';S.hours='11';S.days='7';S.roof='';S.alloc={off:100,on:0};v4();toast('เติมข้อมูลตัวอย่าง: โรงน้ำแข็งขนาดเล็ก');};
   }
   $('days').onchange=e=>S.days=e.target.value;
   if($('loadOther')) bindLoads();
@@ -3196,7 +3535,7 @@ function sceneGoals(){
   return SVG(W,H,o);
 }
 function sceneGroup(){
-  const I=iso(300,96,14.5); let o=sky(W,H,110,70)+swoosh('M-20 120C110 70 220 140 340 100',12,.85);
+  const I=iso(304,134,11.6); let o=sky(W,H,110,70)+swoosh('M-20 120C110 70 220 140 340 100',12,.85);
   o+=base(I,22,17);
   o+=office(I,5,1.5,6,5.5,9.5,3);
   o+=factory(I,13,3,6.5,5,3.6,{cols:3,rows:2,badge:true});
@@ -3305,9 +3644,62 @@ const TITLE_HL={2:'กลุ่มธุรกิจ',3:'ประเภทธ�
 const GOAL_DESC={bill:'ลดต้นทุนค่าไฟรายเดือนของกิจการ',outage:'ให้การผลิตเดินต่อได้แม้ไฟมีปัญหา',night:'เครื่องจักรเดินต่อเนื่องหลังเลิกงานหรือข้ามคืน',
   which:'หาจุดที่ใช้ไฟมากเพื่อจัดการให้ตรงจุด',green:'เพิ่มพลังงานหมุนเวียน ลดการปล่อยคาร์บอน'};
 const ICON_INFO='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+const ICON_SPARK='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg>';
+const byId=id=>document.getElementById(id);
+const DEMO={
+  1:()=>{ S.goals=new Set(['bill','night']); render(); toast('เติมตัวอย่าง: โรงน้ำแข็ง — ค่าไฟสูง + ผลิตกลางคืน'); },
+  2:()=>{ if(S.group!=='agri'){ S.group='agri'; S.type=null; } render(); toast('เติมตัวอย่าง: เกษตรและอุตสาหกรรมอาหาร'); },
+  3:()=>{ S.group='agri'; S.type='ice'; render(); toast('เติมตัวอย่าง: โรงน้ำแข็ง'); },
+  4:()=>{ Object.assign(S,{hours:'11',days:'7',roof:'',alloc:{off:100,on:0},loads:new Set(['cool','cold'])});
+          if(!S.billData && byId('billDemo')) byId('billDemo').click(); else { render(); toast('เติมข้อมูลตัวอย่าง: โรงน้ำแข็ง'); } },
+  6:()=>{ byId('fillDemo')&&byId('fillDemo').click(); }
+};
+function noteList(nt){
+  const t=nt.textContent.trim().replace(/\s+/g,' ');
+  const body=t.replace(/^ประมาณการเบื้องต้น:\s*/,''), segs=body.split(' · ');
+  const rows=[]; let foot='';
+  const R=(k,v,s='')=>rows.push(`<li><span class="nk">${k}</span><span class="nv">${v}${s?`<small>${s}</small>`:''}</span></li>`);
+  for(const sg of segs){ let m;
+    if(m=sg.match(/^ค่าไฟเฉลี่ย\s*(.+)$/)) R('ค่าไฟเฉลี่ย',m[1]);
+    else if(m=sg.match(/^อัตรา TOU ([^:]+): On-Peak \((.+?)\) (฿[\d.,]+) \/ Off-Peak \((.+?)\) (฿[\d.,]+)\/หน่วย \+ Ft (฿[\d.,]+) \+ VAT (\d+%)$/)){
+      R('On-Peak',m[3]+'/หน่วย',m[2]); R('Off-Peak',m[5]+'/หน่วย',m[4]); R('Ft · VAT','+'+m[6]+'/หน่วย · VAT '+m[7],'อัตรา TOU '+m[1]); }
+    else if(m=sg.match(/^Demand\s*(.+)$/)) R('Demand',m[1]);
+    else if(m=sg.match(/^โซลาร์: แผง (.+?) ใช้พื้นที่ (.+?) ราคา (฿\S+) \((.+?)\) ผลิตไฟ (.+)$/)) R('โซลาร์',m[3]+' ('+m[4]+')',`แผง ${m[1]} · ${m[2]}/แผง · ผลิตไฟ ${m[5]}`);
+    else if(m=sg.match(/^ค่าการปล่อย\s*(.+)$/)) R('คาร์บอน',m[1]);
+    else if(/ตรวจวัดหน้างาน/.test(sg)) foot=sg;
+    else R('',sg);
+  }
+  nt.classList.add('note-list');
+  nt.innerHTML=`<b class="nt-h">${ICON_INFO} สมมติฐานที่ใช้ประมาณการเบื้องต้น</b><ul>${rows.join('')}</ul>${foot?`<p class="nt-f">${foot}</p>`:''}`;
+}
+const TAB_IC={
+  sol:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  cust:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+  rep:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>'};
+function tabbar(){
+  const scr=document.getElementById('screen'); let t=document.getElementById('tabbar');
+  if(!t){
+    t=document.createElement('nav'); t.id='tabbar'; t.className='tabbar'; t.setAttribute('aria-label','เมนูผลการประเมิน');
+    t.innerHTML=`<i class="tab-ind" aria-hidden="true"></i>
+      <button type="button" data-tab="sol">${TAB_IC.sol}<span>Solution</span></button>
+      <button type="button" data-tab="cust">${TAB_IC.cust}<span>ข้อมูลลูกค้า</span></button>
+      <button type="button" data-tab="rep">${TAB_IC.rep}<span>Report</span></button>`;
+    document.getElementById('foot').after(t);
+    t.addEventListener('click',e=>{ const b=e.target.closest('[data-tab]'); if(!b) return; const k=b.dataset.tab;
+      if(k==='sol'){ if(S.step!==5) go(5); }
+      else if(k==='cust'){ if(S.step!==6) go(6); }
+      else { if(S.step!==6) go(6); setTimeout(()=>{ const mk=document.getElementById('mk'); if(mk) mk.click(); },S.step===6?0:60); }
+    });
+  }
+  const s=S.step, act=s===5?'sol':s===6?'cust':'';
+  t.querySelectorAll('[data-tab]').forEach((b,i)=>{ const on=b.dataset.tab===act; b.classList.toggle('on',on); if(on){ b.setAttribute('aria-current','page'); t.style.setProperty('--ti',i); } else b.removeAttribute('aria-current'); });
+}
+function goHome(){ document.body.classList.remove('rp-open'); go(1); }
+document.getElementById('homeBtn').onclick=goHome;
 function deco(){
   const s=S.step, scr=document.getElementById('screen');
   if(scr.dataset.step!==String(s)) scr.dataset.step=s;
+  tabbar();
   /* progress: แยก "ผ่านแล้ว" กับ "ขั้นตอนปัจจุบัน" */
   [...document.getElementById('prog').children].forEach((el,i)=>el.classList.toggle('cur',s<=4&&i===s-1));
   /* หัวข้อ: เน้นคำสำคัญ */
@@ -3349,6 +3741,22 @@ function deco(){
   /* การ์ดมาตรการอื่น: ใช้ภาพประกอบชุดเดียวกับการ์ดแนะนำ */
   document.querySelectorAll('.rec').forEach(r=>{ const id=r.querySelector('[data-rec]')?.dataset.rec, ic=r.querySelector('.ic'), k={ee:'pump',solar:'sun',baas:'battery'}[id];
     if(ic && k && !ic.classList.contains('ic-img')){ ic.classList.add('ic-img'); ic.innerHTML=HERO[k](); } });
+  /* ปุ่มเติมข้อมูลตัวอย่าง (โรงน้ำแข็ง) มุมขวาก่อนกรอกข้อมูล ทุกหน้าที่มีการกรอก */
+  const view=document.querySelector('#body .view');
+  if(view && DEMO[s] && !view.querySelector('.demo-row')){
+    view.insertAdjacentHTML('afterbegin',`<div class="demo-row"><button type="button" class="demo-btn" id="demoFill" aria-label="เติมข้อมูลตัวอย่าง: โรงน้ำแข็ง">${ICON_SPARK}<span>ตัวอย่าง: โรงน้ำแข็ง</span></button></div>`);
+    document.getElementById('demoFill').onclick=DEMO[s];
+  }
+  /* หน้า 3: ป้ายกลุ่มธุรกิจชิดซ้าย บรรทัดเดียวกับปุ่มตัวอย่าง */
+  const dr=document.querySelector('#body .view>.demo-row'), pc=document.querySelector('#body .view>.center>.pill');
+  if(dr && pc){ const c=pc.parentElement; dr.prepend(pc); dr.classList.add('with-pill'); if(!c.children.length) c.remove(); }
+  /* หน้าผลประเมิน: หมายเหตุประมาณการ → รายการเป็นข้อ */
+  const nt=document.querySelector('#body .note:not(.note-list)'); if(nt) noteList(nt);
+  /* แถบค่าไฟ: เหลือ 2 สี (On/Off-Peak) เต็มแถบ */
+  document.querySelectorAll('.split:not(.two)').forEach(sp=>{ const seg=[...sp.querySelectorAll('i:not(.dem)')], w=seg.map(i=>parseFloat(i.style.width)||0), t=w.reduce((a,b)=>a+b,0);
+    if(t>0) seg.forEach((i,k)=>i.style.width=(w[k]/t*100).toFixed(2)+'%'); sp.querySelectorAll('i.dem').forEach(i=>i.remove()); sp.classList.add('two'); });
+  /* ราคาเฉลี่ยจริง ขึ้นบรรทัดใหม่ */
+  document.querySelectorAll('.units + .hint:not(.hb), .units ~ .hint:not(.hb)').forEach(h=>{ h.classList.add('hb'); if(h.innerHTML.includes(' · ราคาเฉลี่ยจริง')) h.innerHTML=h.innerHTML.replace(' · ราคาเฉลี่ยจริง','<br><b class="avg">ราคาเฉลี่ยจริง')+'</b>'; });
   /* โลโก้ กฟผ. ในบรรทัดพาร์ตเนอร์ */
   const pt=document.querySelector('.partner'); if(pt && !pt.querySelector('img')) pt.insertAdjacentHTML('afterbegin',`<img src="${BRAND.egat}" alt="EGAT การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย" width="70" height="20">`);
 }
@@ -3422,13 +3830,24 @@ function motion(){
 }
 /* ส่วนหัวย่อเมื่อเลื่อน */
 (()=>{ const b=document.getElementById('body'), sc=document.getElementById('screen'); let on=false;
-  b.addEventListener('scroll',()=>{ const y=b.scrollTop; if(!on&&y>56){on=true;sc.classList.add('compact');} else if(on&&y<10){on=false;sc.classList.remove('compact');} },{passive:true}); })();
+  b.addEventListener('scroll',()=>{ const y=b.scrollTop; if(!on&&y>8){on=true;sc.classList.add('scrolled');} else if(on&&y<=8){on=false;sc.classList.remove('scrolled');} },{passive:true}); })();
 /* ระลอกน้ำตอนกดปุ่ม */
 document.addEventListener('pointerdown',e=>{ const b=e.target.closest('.cta:not(:disabled),.btn2'); if(!b||RM.matches) return;
   const r=b.getBoundingClientRect(), d=Math.max(r.width,r.height)*1.2, s=document.createElement('span');
   s.className='ripple'; s.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
   b.classList.add('ripple-host'); b.appendChild(s); setTimeout(()=>s.remove(),650); });
 
+/* Splash: แสดงตอนเปิดแอป แล้วเข้าสู่ขั้นตอนที่ 1 (แตะเพื่อข้าม) */
+(()=>{ const sp=document.getElementById('splash'), st=document.getElementById('spStage'), scr=document.getElementById('screen'); if(!sp) return;
+  const fit=()=>{ const s=Math.max(sp.clientWidth/390, sp.clientHeight/844); st.style.transform=`translate(-50%,-50%) scale(${s})`; };
+  fit(); addEventListener('resize',fit); scr.classList.add('splashing');
+  let done=false; const leave=()=>{ if(done) return; done=true; removeEventListener('resize',fit);
+    sp.classList.add('out'); scr.classList.remove('splashing'); lastStep=null; render();
+    setTimeout(()=>sp.remove(), RM.matches?0:600); };
+  const t=setTimeout(leave, RM.matches?1200:2600);
+  sp.addEventListener('click',()=>{ clearTimeout(t); leave(); });
+  sp.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '||e.key==='Escape'){ e.preventDefault(); clearTimeout(t); leave(); } });
+})();
 let queued=false;
 new MutationObserver(recs=>{
   if(recs.every(r=>{const t=r.target.nodeType===3?r.target.parentElement:r.target; return t&&t.closest&&t.closest('.counting,.ripple-host');})) return;
@@ -3440,6 +3859,7 @@ const _openReport=openReport;
 openReport=function(){ _openReport();
   const m=document.querySelector('#paper .mark');
   if(m){ m.outerHTML=`<img class="egat-logo" src="${BRAND.egat}" alt="กฟผ. (EGAT)">`; shrinkToFit(); fitPaper(); }
+
 };
 })();
 
